@@ -2336,6 +2336,7 @@ int key;
           bf = fopen(BufferFile, "w");
           if (pf == NULL)
             {
+              pclose(pf);
               Msg(0, "%s: readbuf: could not write buffer file", rc_name);
               break;
             }
