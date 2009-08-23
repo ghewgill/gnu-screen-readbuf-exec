@@ -2311,7 +2311,45 @@ int key;
 	  args += 2;
 	}
 #endif
-      if (args[0] && args[1])
+      if (args[0] && args[0][0] == '!')
+        {
+          FILE *pf, *bf;
+          char buf[1024];
+          char *shcmd;
+          size_t n;
+
+          shcmd = strdup(args[0] + 1);
+          args++;
+          for (; args[0]; args++)
+            {
+              shcmd = realloc(shcmd, strlen(shcmd) + 1 + strlen(args[0]) + 1);
+              strcat(shcmd, " ");
+              strcat(shcmd, args[0]);
+            }
+
+          pf = popen(shcmd, "r");
+          if (pf == NULL)
+            {
+              Msg(0, "%s: readbuf: could not exec command", rc_name);
+              break;
+            }
+          bf = fopen(BufferFile, "w");
+          if (pf == NULL)
+            {
+              Msg(0, "%s: readbuf: could not write buffer file", rc_name);
+              break;
+            }
+          while (1)
+            {
+              n = fread(buf, 1, sizeof(buf), pf);
+              if (n == 0) break;
+              fwrite(buf, 1, n, bf);
+            }
+          fclose(bf);
+          pclose(pf);
+          free(shcmd);
+        }
+      else if (args[0] && args[1])
 	{
 	  Msg(0, "%s: readbuf: too many arguments", rc_name);
 	  break;
